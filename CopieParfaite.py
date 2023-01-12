@@ -14,7 +14,7 @@ def menu_manager(question_only=False):
 
 def val_menu_action(action):
     action = int(action)
-    valid_actions = [1, 9]
+    valid_actions = [1, 9, 91]
     if action in valid_actions:
         return action
     return False
@@ -25,15 +25,39 @@ def action_router(action):
     if not action:
         return False
     
-    if action == 1:
-        dir_tree = ws.gen_dir_tree()
-        view.show_dir_tree(dir_tree)
-        menu_manager()
+    elif action == 1:
+        run_sync_process()
         
     elif action == 9:
         view.print_msg('Exiting. See you soon!')
         sys.exit()
     
+    elif action == 91:
+        dir_tree = ws.gen_dir_tree()
+        view.show_dir_tree(dir_tree)
+        menu_manager()
+
+
+def run_sync_process():
+    view.print_title2('\nSyncronization processing starting')
+    view.print_msg('[1] Directory selection')
+    
+    # Dir1 selection
+    dirA_path = view.ask_select_dir('Please select 1st directory (A) to be synchronized:', indent=1)
+    while not ws.validate_dirpath(dirA_path):
+        dirA_path = view.ask_select_dir('Please select 1st directory (A) to be synchronized (retry):', indent=1)
+    
+    # Dir 2 selection
+    dirB_path = view.ask_select_dir('Please select 2nd directory (B) to be synchronized:', indent=1)
+    while not ws.validate_dirpath(dirB_path):
+        dirB_path = view.ask_select_dir('Please select 2nd directory (B) to be synchronized (retry):', indent=1)
+    
+    view.print_msg('Directories to be synchronized:')
+    view.print_msg(f'(A) {dirA_path}', indent=1)
+    view.print_msg(f'(B) {dirB_path}', indent=1)
+    
+    
+
 
 if __name__=='__main__':
     ws = working_session.WorkingSession()
