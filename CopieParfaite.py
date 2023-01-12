@@ -1,7 +1,7 @@
 import sys
 
 import view
-import copy_session
+import working_session
 
 
 def menu_manager(question_only=False):
@@ -26,7 +26,7 @@ def action_router(action):
         return False
     
     if action == 1:
-        dir_tree = copier.gen_dir_tree()
+        dir_tree = ws.gen_dir_tree()
         view.show_dir_tree(dir_tree)
         menu_manager()
         
@@ -36,7 +36,7 @@ def action_router(action):
     
 
 if __name__=='__main__':
-    copier = copy_session.CopySession()
+    ws = working_session.WorkingSession()
     menu_manager()
 
 

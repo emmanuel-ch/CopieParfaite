@@ -1,7 +1,7 @@
 import glob
 
 
-class CopySession():
+class WorkingSession():
     def __init__(self):
         self.basedir1 = None
         self.basedir2 = None
