@@ -33,7 +33,7 @@ def action_router(action):
         sys.exit()
     
     elif action == 91:
-        dir_tree = ws.gen_dir_tree()
+        dir_tree = ws.gen_list_files('./Test/')
         view.show_dir_tree(dir_tree)
         menu_manager()
 
@@ -56,6 +56,7 @@ def run_sync_process():
     view.print_msg(f'(A) {dirA_path}', indent=1)
     view.print_msg(f'(B) {dirB_path}', indent=1)
     
+    ws.make_tree(dirA_path, dirB_path)
     
 
 

@@ -23,7 +23,7 @@ def show_menu(question_only=False):
         print_title1('COPIE PARFAITE - MAIN MENU')
         print(_MENU_PREFIX_ + '1. Start syncing tool')
         print(_MENU_PREFIX_ + '9. Exit')
-        print(_MENU_PREFIX_ + '91. Select folder')
+        print(_MENU_PREFIX_ + '91. Show files in Test dir')
     return input('What to do?  ')
 
 def ask_select_dir(msg, indent=0):
