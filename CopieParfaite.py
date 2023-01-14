@@ -3,25 +3,22 @@ import sys
 import view
 import working_session
 
+_MAIN_MENU_ACTIONS_ = {
+    1: 'Start syncing tool',
+    9: 'Exit',
+    91: 'Show files in Test dir'
+    }
+
+
 
 def menu_manager(question_only=False):
-    action = view.show_menu(question_only)
-    if not val_menu_action(action):
-        view.print_msg(f'Choice impossible: {action}. Try again.')
-        menu_manager(question_only=True)
     
+    view.print_title1('COPIE PARFAITE - MAIN MENU')
+    action = view.propose_choices(_MAIN_MENU_ACTIONS_, 
+        choice_question='What do you want to do?')
     action_router(action)
 
-def val_menu_action(action):
-    action = int(action)
-    valid_actions = [1, 9, 91]
-    if action in valid_actions:
-        return action
-    return False
-
-
 def action_router(action):
-    action = val_menu_action(action)
     if not action:
         return False
     
@@ -38,8 +35,12 @@ def action_router(action):
         menu_manager()
 
 
+
+
+
 def run_sync_process():
-    view.print_title2('\nSyncronization processing starting')
+    view.print_title2('Syncronization process starting')
+    view.print_msg('(Info) This software only check identical filepath & filesize.')
     view.print_msg('[1] Directory selection')
     
     # Dir1 selection
@@ -57,6 +58,14 @@ def run_sync_process():
     view.print_msg(f'(B) {dirB_path}', indent=1)
     
     ws.make_tree(dirA_path, dirB_path)
+    # view.print_filetree(ws.unified_filetree, diff_only=True)
+    
+    view.print_msg('[2] Manual resolution')
+    
+    # Auto-copy?
+    auto_copy = view.YN_question('Do you want to automatically copy files which aren\'t mirrored?', 'Y')
+    ws.run_synchronizer(auto_copy)
+    
     
 
 

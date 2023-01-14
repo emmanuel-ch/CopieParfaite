@@ -1,0 +1,14 @@
+TODO:
+- Dryrun mode
+- Check: can a file and a folder have exactly the same name in 2 different places? (if yes, bug in make_tree)
+- How to check if file content is the same without getting all their hashes? (slow...)
+- Management of symlinks
+- Management of permissions
+- Async?
+
+
+REVIEW:
+- Review os.path functions + os.stat
+
+https://gist.github.com/tfeldmann/fc875e6630d11f2256e746f67a09c1ae
+
