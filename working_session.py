@@ -106,7 +106,10 @@ class WorkingSession():
         return out_copy == dst
     
     
-    def run_synchronizer(self, auto_copy):
+    
+    
+    
+    def run_synchronizer(self, auto_copy, solve_all_conflicts_by_AB_suffix):
         
         todo_dict = {k: True for k in self.unified_filetree.keys()}
         for entry, entry_details in self.unified_filetree.items():
@@ -118,14 +121,19 @@ class WorkingSession():
                 continue
             todo_dict[entry] = False
             
-            # print(f'todo_dict ({len(todo_dict)}):', todo_dict.items())
             
             if status_code == 0:
                 pass
-            if status_code == 1: 
-                if auto_copy: # Do the auto-copy A -> B
-                    print('  COPY:', self.dirA_path + entry, ' -> ', self.dirB_path + entry, end='\n')
-                    if self.copy_it(entry_details['A_specs'][0], self.dirA_path + entry, self.dirB_path + entry):
+            if status_code in [1, 2]: # File is missing in A or in B => Copy to the other side
+                if status_code == 1:
+                    src_file, dst_file = self.dirA_path + entry, self.dirB_path + entry
+                    str_X_specs = 'A_specs'
+                else:
+                    src_file, dst_file = self.dirB_path + entry, self.dirA_path + entry
+                    str_X_specs = 'B_specs'
+                if auto_copy: # Do the auto-copy A -> B 
+                    print('  COPY:', src_file, ' -> ', dst_file, end='\n')
+                    if self.copy_it(entry_details[str_X_specs][0], src_file, dst_file):
                         # No need to copy files that where in this folder anymore
                         todo_dict = {k: False if k.startswith(entry) else True \
                                      for k, v in todo_dict.items()}
@@ -133,23 +141,19 @@ class WorkingSession():
                 else:
                     # Manual resolution
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
-            elif status_code == 2:
-                if auto_copy: # Do the auto-copy B -> A
-                    print('  COPY:', self.dirB_path + entry, ' -> ', self.dirA_path + entry, end='\n')
-                    if self.copy_it(entry_details['B_specs'][0], self.dirB_path + entry, self.dirA_path + entry):
-                        # No need to copy files that where in this folder anymore
-                        todo_dict = {k: False if k.startswith(entry) else True \
-                                     for k, v in todo_dict.items()}
-                        print('  COPY OK', end='\n\n')
+                    print('/!\ Not covered yet!')
+            elif status_code == 3: # Different type, (A directory and B file)
+                if solve_all_conflicts_by_AB_suffix:
+                    # Rename A and B
+                    # Rename the entries in todo_dict and in self.unified_filetree
+                    # Make the copies as it's needed
                 else:
-                    # Manual resolution
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
-            elif status_code == 3:
-                # Manual resolution
-                print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
+                    print('/!\ Not covered yet!')
+                    # + Handling of children
             elif status_code == 4:
-                # Manual resolution
                 print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
+                # + Handling of children
             elif status_code == 5:
                 # Manual resolution
                 print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')

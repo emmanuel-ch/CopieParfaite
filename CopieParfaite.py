@@ -64,7 +64,8 @@ def run_sync_process():
     
     # Auto-copy?
     auto_copy = view.YN_question('Do you want to automatically copy files which aren\'t mirrored?', 'Y')
-    ws.run_synchronizer(auto_copy)
+    solve_all_conflicts_by_AB_suffix = True
+    ws.run_synchronizer(auto_copy, solve_all_conflicts_by_AB_suffix)
     
     
 
