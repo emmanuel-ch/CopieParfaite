@@ -8,6 +8,8 @@ class WorkingSession():
         self.dirA_path = None
         self.dirB_path = None
         
+        self.unified_filetree = dict()
+        
         self._FILEDIFF_STATUS_ = {
             0: 'No difference',
             1: 'Exists in A but not in B', # For file or folder
@@ -47,14 +49,6 @@ class WorkingSession():
         self.dirA_filelist = self.gen_list_files(self.dirA_path)
         self.dirB_filelist = self.gen_list_files(self.dirB_path)
         
-        # Prepare for comparison
-        # temp_treeA = list(self.dirA_filelist)
-        # temp_treeB = list(self.dirB_filelist)
-        
-        self.unified_filetree = dict()
-        
-        # this_entry should contain: filesize, hash to identify?, permissions, other properties?
-        
         for entry in self.dirA_filelist:
             relative_path = entry.replace(self.dirA_path, '')
             exists_in_treeB = (self.dirB_path + relative_path) in self.dirB_filelist
@@ -65,7 +59,7 @@ class WorkingSession():
                 this_entry['_ID_'] = this_entry['A_specs'] == this_entry['B_specs']
             else:
                 this_entry['_ID_'] = False
-            self.unified_filetree[relative_path] = this_entry
+            self.unified_filetree[relative_path] = this_entry # Make sure each path has the same format! (folders should be without /)
         
         for entry in self.dirB_filelist:
             relative_path = entry.replace(self.dirB_path, '')
@@ -121,9 +115,9 @@ class WorkingSession():
                 continue
             todo_dict[entry] = False
             
-            
             if status_code == 0:
                 pass
+            
             if status_code in [1, 2]: # File is missing in A or in B => Copy to the other side
                 if status_code == 1:
                     src_file, dst_file = self.dirA_path + entry, self.dirB_path + entry
@@ -131,29 +125,45 @@ class WorkingSession():
                 else:
                     src_file, dst_file = self.dirB_path + entry, self.dirA_path + entry
                     str_X_specs = 'B_specs'
+                
                 if auto_copy: # Do the auto-copy A -> B 
                     print('  COPY:', src_file, ' -> ', dst_file, end='\n')
+                    
                     if self.copy_it(entry_details[str_X_specs][0], src_file, dst_file):
                         # No need to copy files that where in this folder anymore
                         todo_dict = {k: False if k.startswith(entry) else True \
                                      for k, v in todo_dict.items()}
                         print('  COPY OK', end='\n\n')
-                else:
-                    # Manual resolution
+                    else:
+                        print('  /!\ COPY NOT OK', end='\n\n')
+                else: # Manual resolution
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
                     print('/!\ Not covered yet!')
-            elif status_code == 3: # Different type, (A directory and B file)
+            
+            elif status_code in [3, 4]:
                 if solve_all_conflicts_by_AB_suffix:
                     # Rename A and B
-                    # Rename the entries in todo_dict and in self.unified_filetree
-                    # Make the copies as it's needed
+                    A_split_orig_filename = os.path.splitext(self.dirA_path + entry)
+                    A_new_path = A_split_orig_filename[0] + '(A)' + A_split_orig_filename[1]
+                    os.rename(self.dirA_path + entry, A_new_path)
+                    
+                    B_split_orig_filename = os.path.splitext(self.dirB_path + entry)
+                    B_new_path = B_split_orig_filename[0] + '(B)' + B_split_orig_filename[1]
+                    os.rename(self.dirB_path + entry, B_new_path)
+                    
+                    # Take care of the items (and their children)
+                    A_isDir = True if status_code == 3 else False
+                    self.copy_it(A_isDir, A_new_path, self.dirB_path)
+                    self.copy_it(not A_isDir, B_new_path, self.dirA_path)
+                    
+                    # No need to work on the children anymore
+                    todo_dict = {k: False if k.startswith(entry) else True \
+                                 for k, v in todo_dict.items()}
                 else:
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
                     print('/!\ Not covered yet!')
                     # + Handling of children
-            elif status_code == 4:
-                print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
-                # + Handling of children
+            
             elif status_code == 5:
                 # Manual resolution
                 print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
