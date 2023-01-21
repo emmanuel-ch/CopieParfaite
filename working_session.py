@@ -35,9 +35,13 @@ class WorkingSession():
     def get_file_specs(self, filepath, hash=0):
         """Returns file specifications:
             - isDir
-            - Filesize
+            - Filesize: 0 if it's a directory'
             - Hash: 0=None; 1=on first 1024 bytes; 2=on whole file"""
-        return_var = os.path.isdir(filepath), os.path.getsize(filepath), 
+         
+        if os.path.isdir(filepath):
+            return_var = os.path.isdir(filepath), 0,
+        else:
+            return_var = os.path.isdir(filepath), os.path.getsize(filepath),
         if hash == 0:
             return return_var
         else:
@@ -140,21 +144,27 @@ class WorkingSession():
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
                     print('/!\ Not covered yet!')
             
-            elif status_code in [3, 4]:
+            elif status_code in [3, 4, 5]:
                 if solve_all_conflicts_by_AB_suffix:
+                    print('  CREATE (A) and (B) versions')
                     # Rename A and B
                     A_split_orig_filename = os.path.splitext(self.dirA_path + entry)
                     A_new_path = A_split_orig_filename[0] + '(A)' + A_split_orig_filename[1]
-                    os.rename(self.dirA_path + entry, A_new_path)
+                    print(f'  RENAMING: (A) {self.dirA_path + entry} -> {A_new_path}')
+                    os.rename(self.dirA_path + entry, A_new_path) # <-- Failure here
                     
                     B_split_orig_filename = os.path.splitext(self.dirB_path + entry)
                     B_new_path = B_split_orig_filename[0] + '(B)' + B_split_orig_filename[1]
+                    print(f'  RENAMING: (B) {self.dirB_path + entry} -> {B_new_path}')
                     os.rename(self.dirB_path + entry, B_new_path)
+                    
+                    break;
                     
                     # Take care of the items (and their children)
                     A_isDir = True if status_code == 3 else False
+                    B_isDir = not A_isDir if status_code == 4 else False
                     self.copy_it(A_isDir, A_new_path, self.dirB_path)
-                    self.copy_it(not A_isDir, B_new_path, self.dirA_path)
+                    self.copy_it(B_isDir, B_new_path, self.dirA_path)
                     
                     # No need to work on the children anymore
                     todo_dict = {k: False if k.startswith(entry) else True \
@@ -163,8 +173,4 @@ class WorkingSession():
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
                     print('/!\ Not covered yet!')
                     # + Handling of children
-            
-            elif status_code == 5:
-                # Manual resolution
-                print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
 
