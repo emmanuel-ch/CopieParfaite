@@ -8,7 +8,7 @@ class WorkingSession():
         self.dirA_path = None
         self.dirB_path = None
         
-        self.unified_filetree = dict()
+        self.unified_filetree = None
         
         self._FILEDIFF_STATUS_ = {
             0: 'No difference',
@@ -20,7 +20,6 @@ class WorkingSession():
             9: 'Unknown', # Needed?
             }
     
-    
     def gen_list_files(self, dirpath): # Turn this into a generator?
         if dirpath[-1] not in ['/', '\\']:
             dirpath += '/'
@@ -28,8 +27,17 @@ class WorkingSession():
         dir_tree = [filepath.replace('\\', '/') for filepath in dir_tree]
         return dir_tree
     
-    def validate_dirpath(self, dirpath):
-        return os.path.exists(dirpath)
+    def validate_record_dirpath(self, dirpath, which):
+        if os.path.exists(dirpath):
+            if which == 'A':
+                self.dirA_path = str(dirpath).replace('\\', '/')
+            elif which == 'B':
+                self.dirB_path = str(dirpath).replace('\\', '/')
+            else:
+                return False
+            return True
+        else:
+            return False
     
     
     def get_file_specs(self, filepath, hash=0):
@@ -45,35 +53,35 @@ class WorkingSession():
         if hash == 0:
             return return_var
         else:
-            print(f'/!\ get_file_specs(..., hash={hash}): Program not written yet!')
+            print(f'/!\\ get_file_specs(..., hash={hash}): Program not written yet!')
     
     def make_tree(self, dirA_path, dirB_path):
-        self.dirA_path = dirA_path
-        self.dirB_path = dirB_path
-        self.dirA_filelist = self.gen_list_files(self.dirA_path)
-        self.dirB_filelist = self.gen_list_files(self.dirB_path)
+        dirA_filelist = self.gen_list_files(dirA_path)
+        dirB_filelist = self.gen_list_files(dirB_path)
         
-        for entry in self.dirA_filelist:
-            relative_path = entry.replace(self.dirA_path, '')
-            exists_in_treeB = (self.dirB_path + relative_path) in self.dirB_filelist
+        unified_filetree = dict()
+        
+        for entry in dirA_filelist:
+            relative_path = entry.replace(dirA_path, '')
+            exists_in_treeB = (dirB_path + relative_path) in dirB_filelist
             this_entry = {'inA': True, 'A_specs': self.get_file_specs(entry)}
             if exists_in_treeB:
                 this_entry['inB'] = True
-                this_entry['B_specs'] = self.get_file_specs(self.dirB_path + relative_path)
+                this_entry['B_specs'] = self.get_file_specs(dirB_path + relative_path)
                 this_entry['_ID_'] = this_entry['A_specs'] == this_entry['B_specs']
             else:
                 this_entry['_ID_'] = False
-            self.unified_filetree[relative_path] = this_entry # Make sure each path has the same format! (folders should be without /)
+            unified_filetree[relative_path] = this_entry # Make sure each path has the same format! (folders should be without /)
         
-        for entry in self.dirB_filelist:
-            relative_path = entry.replace(self.dirB_path, '')
-            already_reviewed = relative_path in list(self.unified_filetree.keys())
+        for entry in dirB_filelist:
+            relative_path = entry.replace(dirB_path, '')
+            already_reviewed = relative_path in list(unified_filetree.keys())
             if not already_reviewed:
                 this_entry = {'inB': True, 'B_specs': self.get_file_specs(entry), '_ID_': False}
-                self.unified_filetree[relative_path] = this_entry
+                unified_filetree[relative_path] = this_entry
         
-        self.unified_filetree = dict(sorted(self.unified_filetree.items()))
-        return self.unified_filetree
+        unified_filetree = dict(sorted(unified_filetree.items()))
+        return unified_filetree
     
     
     def get_filediff_status(self, entry, entry_details):
@@ -98,7 +106,7 @@ class WorkingSession():
     
     def copy_it(self, isDir, src, dst):
         if isDir:
-            out_copy = shutil.copytree(src, dst)
+            out_copy = shutil.copytree(src, dst, dirs_exist_ok=True)
         else:
             out_copy = shutil.copy2(src, dst)
         return out_copy == dst
@@ -113,14 +121,14 @@ class WorkingSession():
         for entry, entry_details in self.unified_filetree.items():
             status_code, status_msg = self.get_filediff_status(entry, entry_details)
             
-            print(f'\n__ ENTRY: {entry}', status_msg)
             if not todo_dict[entry]:
-                print('SKIPPED')
                 continue
             todo_dict[entry] = False
             
             if status_code == 0:
                 pass
+            
+            # print(f'_ENTRY: {entry}')
             
             if status_code in [1, 2]: # File is missing in A or in B => Copy to the other side
                 if status_code == 1:
@@ -131,46 +139,46 @@ class WorkingSession():
                     str_X_specs = 'B_specs'
                 
                 if auto_copy: # Do the auto-copy A -> B 
-                    print('  COPY:', src_file, ' -> ', dst_file, end='\n')
                     
                     if self.copy_it(entry_details[str_X_specs][0], src_file, dst_file):
                         # No need to copy files that where in this folder anymore
                         todo_dict = {k: False if k.startswith(entry) else True \
                                      for k, v in todo_dict.items()}
-                        print('  COPY OK', end='\n\n')
                     else:
-                        print('  /!\ COPY NOT OK', end='\n\n')
+                        print(r'  /!\ COPY NOT OK', end='\n\n')
                 else: # Manual resolution
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
-                    print('/!\ Not covered yet!')
+                    print(r'/!\ Not covered yet!')
             
             elif status_code in [3, 4, 5]:
                 if solve_all_conflicts_by_AB_suffix:
-                    print('  CREATE (A) and (B) versions')
                     # Rename A and B
                     A_split_orig_filename = os.path.splitext(self.dirA_path + entry)
                     A_new_path = A_split_orig_filename[0] + '(A)' + A_split_orig_filename[1]
-                    print(f'  RENAMING: (A) {self.dirA_path + entry} -> {A_new_path}')
-                    os.rename(self.dirA_path + entry, A_new_path) # <-- Failure here
+                    os.rename(self.dirA_path + entry, A_new_path)
+                    print(f'RENAMING {entry}:\nFROM: {self.dirA_path + entry}\nTO:   {A_new_path}')
+                    print(self.gen_list_files(self.dirA_path), end='\n\n')
                     
                     B_split_orig_filename = os.path.splitext(self.dirB_path + entry)
                     B_new_path = B_split_orig_filename[0] + '(B)' + B_split_orig_filename[1]
-                    print(f'  RENAMING: (B) {self.dirB_path + entry} -> {B_new_path}')
                     os.rename(self.dirB_path + entry, B_new_path)
                     
-                    break;
+                    print(self.gen_list_files(self.dirA_path), end='\n\n')
                     
                     # Take care of the items (and their children)
                     A_isDir = True if status_code == 3 else False
                     B_isDir = not A_isDir if status_code == 4 else False
-                    self.copy_it(A_isDir, A_new_path, self.dirB_path)
-                    self.copy_it(B_isDir, B_new_path, self.dirA_path)
+                    copyAB = self.copy_it(A_isDir, A_new_path, self.dirB_path)
+                    print(f'COPIED? {copyAB}')
+                    # self.copy_it(B_isDir, B_new_path, self.dirA_path)
+                    
+                    print(self.gen_list_files(self.dirA_path), end='\n\n')
                     
                     # No need to work on the children anymore
                     todo_dict = {k: False if k.startswith(entry) else True \
                                  for k, v in todo_dict.items()}
                 else:
                     print(entry, '|| MANUAL', status_code, status_msg, '\n', entry_details, end='\n\n')
-                    print('/!\ Not covered yet!')
+                    print(r'/!\ Not covered yet!')
                     # + Handling of children
 
