@@ -58,7 +58,7 @@ def run_sync_process():
     view.print_filetree(ws.unified_filetree, diff_only=True)
     
     view.print_msg('[2] Manual resolution')
-    return 'STOP'
+    
     # Auto-copy?
     auto_copy = view.YN_question('Do you want to automatically copy files which aren\'t mirrored?', 'Y')
     solve_all_conflicts_by_AB_suffix = True

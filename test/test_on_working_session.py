@@ -28,9 +28,13 @@ def setup_test_dir(tmpdir):
 def test_run_synchronizer_fullauto(setup_test_dir):
     ws, dirA_path, dirB_path = setup_test_dir
     ws.run_synchronizer(True, True)
+    new_tree = ws.make_tree(ws.dirA_path, ws.dirB_path)
     
     # Check 1: File names are mirrored
-    new_tree = ws.make_tree(ws.dirA_path, ws.dirB_path)
+    missing_files = [k for k,v in new_tree.items() if ('inA' not in v.keys()) or ('inB' not in v.keys())]
+    assert len(missing_files) == 0, 'Not all file names are the same.'
+    
+    # Check 2: File content are mirrored
     inequal_files = [k for k,v in new_tree.items() if not v['_ID_']]
     assert len(inequal_files) == 0, 'Files after sync differ.'
     
