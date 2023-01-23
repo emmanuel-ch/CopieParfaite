@@ -110,7 +110,7 @@ def print_filetree(unified_filetree, diff_only=True):
         print_title2('Unified tree')
         tree_to_show = tree_to_show = {k:get_readable_entrydiff(v) \
                         for k, v in unified_filetree.items()}
-    _ = {print(k + ':\t' + v) for k,v in tree_to_show.items()}
+    _ = {print(f'{k}:\t{v}') for k,v in tree_to_show.items()}
     # pprint.pprint(tree_to_show, indent=4)
 
 

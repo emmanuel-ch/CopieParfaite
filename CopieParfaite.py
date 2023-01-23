@@ -54,11 +54,11 @@ def run_sync_process():
     view.print_msg(f'(A) {dirA_path}', indent=1)
     view.print_msg(f'(B) {dirB_path}', indent=1)
     
-    ws.unified_filetree = ws.make_tree(dirA_path, dirB_path)
-    # view.print_filetree(ws.unified_filetree, diff_only=True)
+    ws.unified_filetree = ws.make_tree(ws.dirA_path, ws.dirB_path)
+    view.print_filetree(ws.unified_filetree, diff_only=True)
     
     view.print_msg('[2] Manual resolution')
-    
+    return 'STOP'
     # Auto-copy?
     auto_copy = view.YN_question('Do you want to automatically copy files which aren\'t mirrored?', 'Y')
     solve_all_conflicts_by_AB_suffix = True
