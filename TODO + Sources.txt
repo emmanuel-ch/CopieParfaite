@@ -4,4 +4,6 @@ TODO:
 - How to check if file content is the same without getting all their hashes? (slow...)
 - Management of symlinks
 - Async?
-
+- Possible CLI: 
+  - cursa
+  - https://github.com/Textualize/rich    - /rich-cli    - /textual

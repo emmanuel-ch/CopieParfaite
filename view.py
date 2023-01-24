@@ -1,9 +1,3 @@
-"""Possible CLI UI:
-cursa
-https://github.com/Textualize/rich    - /rich-cli    - /textual"""
-
-
-import pprint
 
 _SCREENWIDTH_ = 60
 _TITLE_FILLER_ = '#'
