@@ -156,18 +156,20 @@ class WorkingSession():
                     
                     # Rename A and B
                     A_path = self.dirA_path / entry
-                    A_new_path = A_path.with_name(A_path.stem + '(A)' + A_path.suffix)
+                    A_new_name = A_path.stem + '(A)' + A_path.suffix
+                    A_new_path = A_path.with_name(A_new_name)
                     os.rename(A_path, A_new_path)
                     
                     B_path = self.dirB_path / entry
-                    B_new_path = B_path.with_name(B_path.stem + '(B)' + B_path.suffix)
+                    B_new_name = B_path.stem + '(B)' + B_path.suffix
+                    B_new_path = B_path.with_name(B_new_name)
                     os.rename(B_path, B_new_path)
                     
                     # Take care of the items (and their children)
                     A_isDir = True if status_code == 3 else False
                     B_isDir = not A_isDir if status_code == 4 else False
-                    self.copy_it(A_new_path, self.dirB_path / rel_dir, A_isDir)
-                    self.copy_it(B_new_path, self.dirA_path / rel_dir, B_isDir)
+                    self.copy_it(A_new_path, self.dirB_path / rel_dir / A_new_name, A_isDir)
+                    self.copy_it(B_new_path, self.dirA_path / rel_dir / B_new_name, B_isDir)
                     
                     # No need to work on the children anymore
                     todo_dict = {k: False if k.is_relative_to(entry) else True \

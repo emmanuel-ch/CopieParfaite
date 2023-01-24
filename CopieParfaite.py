@@ -1,4 +1,5 @@
 import sys
+import time
 
 import view
 import working_session
@@ -27,6 +28,7 @@ def action_router(action):
         
     elif action == 9:
         view.print_msg('Exiting. See you soon!')
+        time.sleep(2)
         sys.exit()
     
     elif action == 91:
@@ -38,7 +40,6 @@ def action_router(action):
 def run_sync_process():
     view.print_title2('Syncronization process starting')
     view.print_msg('(Info) This software only check identical filepath & filesize.')
-    view.print_msg('[1] Directory selection')
     
     # Dir1 selection
     dirA_path = view.ask_select_dir('Please select 1st directory (A) to be synchronized:', indent=1)
@@ -56,8 +57,6 @@ def run_sync_process():
     
     ws.unified_filetree = ws.make_tree(ws.dirA_path, ws.dirB_path)
     view.print_filetree(ws.unified_filetree, diff_only=True)
-    
-    view.print_msg('[2] Manual resolution')
     
     # Auto-copy?
     auto_copy = view.YN_question('Do you want to automatically copy files which aren\'t mirrored?', 'Y')
