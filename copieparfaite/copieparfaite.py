@@ -1,40 +1,7 @@
 import sys
 import time
 
-import view
-import working_session
-
-_MAIN_MENU_ACTIONS_ = {
-    1: 'Start syncing tool',
-    9: 'Exit',
-    91: 'Show files in Test dir'
-    }
-
-
-
-def menu_manager(question_only=False):
-    
-    view.print_title1('COPIE PARFAITE - MAIN MENU')
-    action = view.propose_choices(_MAIN_MENU_ACTIONS_, 
-        choice_question='What do you want to do?')
-    action_router(action)
-
-def action_router(action):
-    if not action:
-        return False
-    
-    elif action == 1:
-        run_sync_process()
-        
-    elif action == 9:
-        view.print_msg('Exiting. See you soon!')
-        time.sleep(2)
-        sys.exit()
-    
-    elif action == 91:
-        dir_tree = ws.gen_list_files('./test/')
-        view.show_dir_tree(dir_tree)
-        menu_manager()
+from copieparfaite import view
 
 
 def run_sync_process():
@@ -65,10 +32,4 @@ def run_sync_process():
     view.print_msg('[i] Synchronization finished.')
     
     menu_manager()
-
-
-if __name__=='__main__':
-    ws = working_session.WorkingSession()
-    menu_manager()
-
 

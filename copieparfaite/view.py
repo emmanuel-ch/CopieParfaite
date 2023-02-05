@@ -1,3 +1,24 @@
+from rich.console import Console
+from rich.panel import Panel
+from rich.align import Align
+# https://rich.readthedocs.io/en/stable/
+# jobs; fullscreen; dynamic_progress; layout
+
+
+class ConsoleManager():
+    
+    def __init__(self):
+        self.console = Console()
+    
+    def show_welcome_message(self):
+        self.console.print(
+            Panel(
+                Align.center("[bold blue]Copie Parfaite")
+                , padding=1, subtitle="Make perfectly mirrored folders")
+            )
+
+
+
 
 _SCREENWIDTH_ = 60
 _TITLE_FILLER_ = '#'
@@ -63,6 +84,7 @@ def YN_question(choice_question, default_answer=None):
         
 
 def show_menu(question_only=False):
+    
     if not question_only:
         
         print(_MENU_PREFIX_ + '1. Start syncing tool')
