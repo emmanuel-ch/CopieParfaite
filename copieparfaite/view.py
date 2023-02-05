@@ -16,6 +16,7 @@ class ConsoleManager():
                 Align.center("[bold blue]Copie Parfaite")
                 , padding=1, subtitle="Make perfectly mirrored folders")
             )
+        self.console.print('(Info) This software only check identical filepath & filesize.')
 
 
 
